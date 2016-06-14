@@ -11,9 +11,8 @@ if(config.getForum() is None):
 
 browser = utility.login(config.getUsername(), config.getPassword(), config.getForum())
 
-browser.open(config.getForum() + "/forum")
 forumList = []
 
-utility.findForums(browser, forumList)
+utility.findForums(browser, forumList, config.getForum() + "/forum")
 
 print(forumList)

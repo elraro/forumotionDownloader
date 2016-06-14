@@ -1,5 +1,7 @@
 from robobrowser import RoboBrowser
 from forum import Forum
+import config
+import copy
 
 def login(user, password, forum):
     browser = RoboBrowser(parser="lxml", user_agent="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0 (Pale Moon)")
@@ -10,7 +12,9 @@ def login(user, password, forum):
     browser.submit_form(login)
     return browser
 
-def findForums(browser, forumList):
+def findForums(browser, forumList, url):
+    browser.open(url)
+    forumListAux = []
     for forum in browser.parsed.findAll("dd", "dterm"):
         forums = forum.findAll("a", "forumtitle")
         if forums is not None:
@@ -19,7 +23,7 @@ def findForums(browser, forumList):
                 id = link.split("-")[0][2:]
                 name = a.contents[0]
                 print("Create forum " + name + " with id " + str(id))
-                forumList.append(Forum(id, str(name), link))
+                forumListAux.append(Forum(id, str(name), link))
 
         subforums = forum.findAll("a", "gensmall")
         if subforums is not None:
@@ -28,4 +32,10 @@ def findForums(browser, forumList):
                 id = link.split("-")[0][2:]
                 name = subforum.contents[0]
                 print("Create forum " + name + " with id " + str(id))
-                forumList.append(Forum(id, str(name), link))
+                forumListAux.append(Forum(id, str(name), link))
+
+    forumList.append(forumListAux)
+
+    for forum in forumListAux:
+        print("Lets check subforums in " + config.getForum() + forum.link)
+        findForums(browser, forumList, config.getForum() + forum.link)
