@@ -14,28 +14,46 @@ def login(user, password, forum):
 
 def findForums(browser, forumList, url):
     browser.open(url)
-    forumListAux = []
+    forumListAux = {}
     for forum in browser.parsed.findAll("dd", "dterm"):
         forums = forum.findAll("a", "forumtitle")
         if forums is not None:
             for a in forums:
                 link = a["href"]
+                if "http://" in link:
+                    continue
+
                 id = link.split("-")[0][2:]
-                name = a.contents[0]
+                if id in forumList:
+                    continue
+
+                try:
+                    name = a.contents[0]
+                except IndexError:
+                    name = ""
                 print("Create forum " + name + " with id " + str(id))
-                forumListAux.append(Forum(id, str(name), link))
+                forumListAux[id] = Forum(id, str(name), link)
 
         subforums = forum.findAll("a", "gensmall")
         if subforums is not None:
             for subforum in subforums:
                 link = subforum["href"]
+                if "http://" in link:
+                    continue
+
                 id = link.split("-")[0][2:]
-                name = subforum.contents[0]
+                if id in forumList:
+                    continue
+
+                try:
+                    name = subforum.contents[0]
+                except IndexError:
+                    name = ""
                 print("Create forum " + name + " with id " + str(id))
-                forumListAux.append(Forum(id, str(name), link))
+                forumListAux[id] = Forum(id, str(name), link)
 
-    forumList.append(forumListAux)
-
-    for forum in forumListAux:
-        print("Lets check subforums in " + config.getForum() + forum.link)
-        findForums(browser, forumList, config.getForum() + forum.link)
+    if len(forumListAux) != 0:
+        forumList.update(forumListAux)
+        for forum in forumListAux:
+            print("Lets check subforums in " + config.getForum() + forumListAux[forum].link)
+            findForums(browser, forumList, config.getForum() + forumListAux[forum].link)
