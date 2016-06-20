@@ -12,8 +12,12 @@ if(config.getForum() is None):
 
 browser = utility.login(config.getUsername(), config.getPassword(), config.getForum())
 
-forumList = {}
+# forumList = {}
 
-utility.findForums(browser, forumList, config.getForum() + "/forum")
+# utility.findForums(browser, forumList, config.getForum() + "/forum")
 
-forumWritter.create_forums(forumList)
+# forumWritter.create_forums(forumList)
+
+userList = {}
+
+utility.downloadUsers(browser, userList, config.getForum())
