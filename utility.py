@@ -1,6 +1,8 @@
 from robobrowser import RoboBrowser
 from forum import Forum
 import config
+from urllib.parse import urlparse
+from urllib.parse import parse_qs
 
 def login(user, password, forum):
     browser = RoboBrowser(parser="lxml", user_agent="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0 (Pale Moon)")
@@ -62,25 +64,29 @@ def findForums(browser, forumList, url):
 def downloadUsers(browser, userList, url):
     browser.open(url)
     admin = browser.parsed.find("p", "copyright").find("a")
-    print(admin["href"])
     browser.open(url + admin["href"])
 
-    for option in browser.parsed.findAll("a"):
-        try:
-            if "part=users_groups&tid=" in option["href"]:
-                browser.open(url + option["href"])
-                print(option["href"])
-                break
-        except KeyError:
-            continue
+    for option in browser.parsed.findAll("a", href=True):
+        if "part=users_groups&tid=" in option["href"]:
+            browser.open(url + option["href"])
+            break
 
-    for option in browser.parsed.findAll("a"):
-        try:
-            if "part=users_groups&sub=users&tid=" in option["href"]:
-                browser.open(url + option["href"])
-                print(option["href"])
-                break
-        except KeyError:
-            continue
 
-    print(browser.parsed)
+    for option in browser.parsed.findAll("a", href=True):
+        if "part=users_groups&sub=users&tid=" in option["href"]:
+            browser.open(url + option["href"])
+            break
+
+    maxPage = 0
+    for links in browser.parsed.findAll("a", href=True):
+        if "&part=users_groups&sort&start=" in links["href"]:
+            url = urlparse(links["href"])
+            params = parse_qs(url.query)
+            if 'start' in params:
+                page = int(params['start'][0])
+                if page > maxPage:
+                    maxPage = page
+
+    print(maxPage)
+
+    # print(browser.parsed)
